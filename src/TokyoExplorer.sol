@@ -9,14 +9,8 @@ contract TokyoExplorer {
     /// @dev bitmap for each address representing unlocked locations
     mapping(address => uint256) public unlocks;
 
-    /// @dev details to be used for each unlock when rendering full svg
-    /// x and y here refer to offset within the base svg image
-    struct Unlock {
-        string x;
-        string y;
-        string text;
-    }
-
+    /// @dev collection of image offset coordinates
+    /// and stamp text for reward stamps
     string[3][23] public stamps;
 
     constructor() {
