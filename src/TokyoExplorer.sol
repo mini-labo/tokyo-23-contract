@@ -4,18 +4,25 @@ pragma solidity ^0.8.19;
 
 import "ERC721A/ERC721A.sol";
 import "solady/utils/Base64.sol";
+import "solady/auth/Ownable.sol";
 
 error InvalidSignature();
 error MaximumOneTokenPerAddress();
+error InsufficientFunds();
 error NotTokenHolder();
 error OnlyForYou();
 
-contract TokyoExplorer is ERC721A {
+contract TokyoExplorer is ERC721A, Ownable {
     // bitmap for each address representing unlocked locations
     mapping(address => uint256) public unlocks;
 
     // collection of image offset coordinates and text for reward stamps
     string[3][23] public stamps;
+
+    uint256 public immutable cost = 0.08 ether;
+
+    // address of the issuer for signatures verified in applyUnlocks
+    address public immutable teamSigner = 0x489DeaF7D6aD9512a183eA01dD5331011d662a6c;
 
     // TODO: replace these placeholder coordinates!
     // might need custom scale value as well based on character length
@@ -43,17 +50,32 @@ contract TokyoExplorer is ERC721A {
         stamps[20] = ["7.7", "11", unicode"足立"];
         stamps[21] = ["7.7", "11", unicode"葛飾"];
         stamps[22] = ["7.7", "11", unicode"江戸川"];
+
+        _initializeOwner(msg.sender);
     }
 
-    address public immutable teamSigner = 0x489DeaF7D6aD9512a183eA01dD5331011d662a6c;
+    function mintTo(address to) public payable {
+        if (balanceOf(to) > 0) {
+            revert MaximumOneTokenPerAddress();
+        }
 
-    // TODO: add mint price
-    function mintTo(address to) public {
+        if (msg.value < cost) {
+            revert InsufficientFunds();
+        }
+
+        _mint(to, 1);
+    }
+
+    function hononaryMint(address to) public onlyOwner {
         if (balanceOf(to) > 0) {
             revert MaximumOneTokenPerAddress();
         }
 
         _mint(to, 1);
+    }
+
+    function withdraw() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     function burnToken(uint256 tokenId) public {
