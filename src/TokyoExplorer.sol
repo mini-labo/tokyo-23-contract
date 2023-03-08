@@ -66,7 +66,7 @@ contract TokyoExplorer is ERC721A, Ownable {
         _mint(to, 1);
     }
 
-    function hononaryMint(address to) public onlyOwner {
+    function honoraryMint(address to) public onlyOwner {
         if (balanceOf(to) > 0) {
             revert MaximumOneTokenPerAddress();
         }
