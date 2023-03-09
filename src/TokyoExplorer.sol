@@ -16,6 +16,9 @@ contract TokyoExplorer is ERC721A, Ownable {
     // bitmap for each address representing unlocked locations
     mapping(address => uint256) public unlocks;
 
+    // id associated with a given owner for easy access
+    mapping(address => uint256) public tokenOf;
+
     // collection of image offset coordinates and text for reward stamps
     string[3][23] public stamps;
 
@@ -26,7 +29,7 @@ contract TokyoExplorer is ERC721A, Ownable {
 
     // TODO: replace these placeholder coordinates!
     // might need custom scale value as well based on character length
-    constructor() ERC721A("TokyoExplorer", "TOKYO") {
+    constructor() ERC721A("TOKYO 23", "TOKYO23") {
         stamps[0] = ["175.2", "317.8", unicode"目黒"];
         stamps[1] = ["7.7", "11", unicode"渋谷"];
         stamps[2] = ["7.7", "11", unicode"千代田"];
@@ -54,6 +57,11 @@ contract TokyoExplorer is ERC721A, Ownable {
         _initializeOwner(msg.sender);
     }
 
+    // start at 1, so we can treat the unset 0 value as null in the tokenOf mapping
+    function _startTokenId() internal pure override returns (uint256) {
+        return 1;
+    }
+
     function mintTo(address to) public payable {
         if (balanceOf(to) > 0) {
             revert MaximumOneTokenPerAddress();
@@ -63,6 +71,7 @@ contract TokyoExplorer is ERC721A, Ownable {
             revert InsufficientFunds();
         }
 
+        tokenOf[to] = _nextTokenId();
         _mint(to, 1);
     }
 
@@ -71,6 +80,7 @@ contract TokyoExplorer is ERC721A, Ownable {
             revert MaximumOneTokenPerAddress();
         }
 
+        tokenOf[to] = _nextTokenId();
         _mint(to, 1);
     }
 

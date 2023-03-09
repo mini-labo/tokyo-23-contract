@@ -32,6 +32,25 @@ contract TokyoExplorerTest is Test {
         assertEq(tokyoExplorer.balanceOf(user), 1);
     }
 
+    function testTokenOf() public {
+        address user = 0xfa3d0C8d113f5831449a28235119A904233f9652;
+        address user2 = vm.addr(1);
+
+        vm.deal(user, 1 ether);
+        vm.startPrank(address(user));
+
+        tokyoExplorer.mintTo{value: 0.08 ether}(user);
+
+        vm.stopPrank();
+
+        assertEq(address(tokyoExplorer).balance, 0.08 ether);
+        assertEq(tokyoExplorer.balanceOf(user), 1);
+        // starting id - 1
+        assertEq(tokyoExplorer.tokenOf(user), 1);
+        // user has not minted - expect id 0 (unset)
+        assertEq(tokyoExplorer.tokenOf(user2), 0);
+    }
+
     function testWithdraw() public {
         address user = 0xfa3d0C8d113f5831449a28235119A904233f9652;
         uint256 originalOwnerBalance = address(this).balance;
