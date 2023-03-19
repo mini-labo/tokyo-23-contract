@@ -13,8 +13,13 @@ error NotTokenHolder();
 error OnlyForYou();
 
 contract TokyoExplorer is ERC721A, Ownable {
-    // bitmap for each address representing unlocked locations
-    mapping(address => uint256) public unlocks;
+    event UnlocksApplied(uint256 _tokenId, uint256 _unlocks);
+
+    /// @dev event for third party marketplace update tracking
+    event MetadataUpdate(uint256 _tokenId);
+
+    // bitmap for each tokenId representing unlocked locations
+    mapping(uint256 => uint256) public unlocks;
 
     // id associated with a given owner for easy access
     mapping(address => uint256) public tokenOf;
@@ -30,19 +35,19 @@ contract TokyoExplorer is ERC721A, Ownable {
     // TODO: replace these placeholder coordinates!
     // might need custom scale value as well based on character length
     constructor() ERC721A("TOKYO 23", "TOKYO23") {
-        stamps[0] = ["175.2", "317.8", unicode"目黒"];
-        stamps[1] = ["7.7", "11", unicode"渋谷"];
-        stamps[2] = ["7.7", "11", unicode"千代田"];
-        stamps[3] = ["7.7", "11", unicode"中央"];
-        stamps[4] = ["7.7", "11", unicode"港"];
-        stamps[5] = ["7.7", "11", unicode"新宿"];
-        stamps[6] = ["7.7", "11", unicode"文京"];
-        stamps[7] = ["7.7", "11", unicode"台東"];
-        stamps[8] = ["7.7", "11", unicode"墨田"];
-        stamps[9] = ["7.7", "11", unicode"江東"];
-        stamps[10] = ["7.7", "11", unicode"品川"];
-        stamps[11] = ["7.7", "11", unicode"大田"];
-        stamps[12] = ["7.7", "11", unicode"世田谷"];
+        stamps[0] = ["7.7", "11", unicode"千代田"];
+        stamps[1] = ["7.7", "11", unicode"中央"];
+        stamps[2] = ["7.7", "11", unicode"港"];
+        stamps[3] = ["7.7", "11", unicode"新宿"];
+        stamps[4] = ["7.7", "11", unicode"文京"];
+        stamps[5] = ["7.7", "11", unicode"台東"];
+        stamps[6] = ["7.7", "11", unicode"墨田"];
+        stamps[7] = ["7.7", "11", unicode"江東"];
+        stamps[8] = ["7.7", "11", unicode"品川"];
+        stamps[9] = ["175.2", "317.8", unicode"目黒"];
+        stamps[10] = ["7.7", "11", unicode"大田"];
+        stamps[11] = ["7.7", "11", unicode"世田谷"];
+        stamps[12] = ["7.7", "11", unicode"渋谷"];
         stamps[13] = ["7.7", "11", unicode"中野"];
         stamps[14] = ["7.7", "11", unicode"杉並"];
         stamps[15] = ["7.7", "11", unicode"豊島"];
@@ -95,7 +100,7 @@ contract TokyoExplorer is ERC721A, Ownable {
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
 
-        string[3][] memory unlockedStamps = retrieveUnlocks(ownerOf(tokenId));
+        string[3][] memory unlockedStamps = retrieveUnlocks(tokenId);
         bytes memory encodedAttributes;
         for (uint256 i = 0; i < unlockedStamps.length; i++) {
             string[3] memory stamp = unlockedStamps[i];
@@ -116,8 +121,8 @@ contract TokyoExplorer is ERC721A, Ownable {
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
-                            '{"name":"Tokyo Explorer Map",',
-                            '"description":"a map to save your travels",',
+                            '{"name":"TOKYO 23",',
+                            '"description":"TOKYO 23",',
                             '"attributes":[{"trait_type":"points","max_value":23,"value":',
                             _toString(unlockedStamps.length),
                             "}",
@@ -135,6 +140,7 @@ contract TokyoExplorer is ERC721A, Ownable {
     // validate a signature, applying reported unlocks if valid
     function applyUnlocks(uint256 unlockMap, bytes32 r, bytes32 s, uint8 v) public {
         if (balanceOf(msg.sender) < 1) revert NotTokenHolder();
+        uint256 tokenId = tokenOf[msg.sender];
 
         bytes memory encoded = abi.encode(msg.sender, unlockMap);
         bytes32 signatureHash =
@@ -145,7 +151,10 @@ contract TokyoExplorer is ERC721A, Ownable {
             revert InvalidSignature();
         }
 
-        unlocks[msg.sender] = unlockMap;
+        unlocks[tokenId] = unlockMap;
+
+        emit MetadataUpdate(tokenId);
+        emit UnlocksApplied(tokenId, unlockMap);
     }
 
     function buildSvg(string[3][] memory unlockedStamps) internal pure returns (string memory) {
@@ -185,8 +194,8 @@ contract TokyoExplorer is ERC721A, Ownable {
         );
     }
 
-    function retrieveUnlocks(address user) public view returns (string[3][] memory) {
-        uint256 unlocked = unlocks[user];
+    function retrieveUnlocks(uint256 tokenId) public view returns (string[3][] memory) {
+        uint256 unlocked = unlocks[tokenId];
 
         // determine size to be declared
         uint256 length = 0;
@@ -214,5 +223,10 @@ contract TokyoExplorer is ERC721A, Ownable {
         if (from != address(0) && to != address(0)) {
             revert OnlyForYou();
         }
+    }
+
+    /// @dev See {IERC165-supportsInterface}.
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == bytes4(0x49064906) || super.supportsInterface(interfaceId);
     }
 }
