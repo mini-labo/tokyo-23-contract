@@ -37,7 +37,7 @@ contract TokyoExplorer is ERC721A, Ownable {
     address private baseSvgPointer;
 
     constructor() ERC721A("TOKYO 23", "TOKYO23") {
-        stamps[0] = ["297.5", "225.5", "8672cb", "645597", unicode"千代田"];
+        stamps[0] = ["296.5", "224.5", "8672cb", "645597", unicode"千代田"];
         stamps[1] = ["348.5", "237.5", "f7da00", "c4ad00", unicode"中央"];
         stamps[2] = ["266.5", "310.5", "6cb0d2", "51849e", unicode"港"];
         stamps[3] = ["230.5", "199.5", "c32d76", "8a2057", unicode"新宿"];
