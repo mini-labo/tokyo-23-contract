@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 
 import "ERC721A/ERC721A.sol";
 import "solady/utils/Base64.sol";
+import "solady/utils/SSTORE2.sol";
 import "solady/auth/Ownable.sol";
 
 error InvalidSignature();
@@ -31,6 +32,9 @@ contract TokyoExplorer is ERC721A, Ownable {
 
     // address of the issuer for signatures verified in applyUnlocks
     address public immutable teamSigner = 0x489DeaF7D6aD9512a183eA01dD5331011d662a6c;
+
+    // address where base svg image is stored
+    address private baseSvgPointer;
 
     // TODO: replace these placeholder coordinates!
     // might need custom scale value as well based on character length
@@ -65,6 +69,11 @@ contract TokyoExplorer is ERC721A, Ownable {
     // start at 1, so we can treat the unset 0 value as null in the tokenOf mapping
     function _startTokenId() internal pure override returns (uint256) {
         return 1;
+    }
+
+    function setBaseImage(bytes calldata image) public onlyOwner {
+        address location = SSTORE2.write(image);
+        baseSvgPointer = location;
     }
 
     function mintTo(address to) public payable {
@@ -157,7 +166,7 @@ contract TokyoExplorer is ERC721A, Ownable {
         emit UnlocksApplied(tokenId, unlockMap);
     }
 
-    function buildSvg(string[3][] memory unlockedStamps) internal pure returns (string memory) {
+    function buildSvg(string[3][] memory unlockedStamps) internal view returns (string memory) {
         string memory baseUrl = "data:image/svg+xml;base64,";
 
         bytes memory encodedStamps;
@@ -177,14 +186,16 @@ contract TokyoExplorer is ERC721A, Ownable {
             encodedStamps = abi.encodePacked(encodedStamps, stampSvg);
         }
 
+        bytes memory baseSvg = SSTORE2.read(baseSvgPointer);
+
         return string(
             abi.encodePacked(
                 baseUrl,
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
-                            "<svg width=\"550\" height=\"500\" viewBox=\"0 0 550 500\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">",
-                            "<image href=\"https://upload.wikimedia.org/wikipedia/commons/1/16/Tokyo_special_wards_map.svg\"/>",
+                            "<svg width=\"600\" height=\"600\" viewBox=\"0 0 600 600\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">",
+                            baseSvg,
                             encodedStamps,
                             "</svg>"
                         )
