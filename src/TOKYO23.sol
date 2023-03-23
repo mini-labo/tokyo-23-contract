@@ -6,14 +6,17 @@ import "ERC721A/ERC721A.sol";
 import "solady/utils/Base64.sol";
 import "solady/utils/SSTORE2.sol";
 import "solady/auth/Ownable.sol";
+import "openzeppelin-contracts/contracts/finance/PaymentSplitter.sol";
 
 error InvalidSignature();
 error MaximumOneTokenPerAddress();
 error InsufficientFunds();
+error CostTooLow();
+error ZeroAddressSigner();
 error NotTokenHolder();
 error OnlyForYou();
 
-contract TOKYO23 is ERC721A, Ownable {
+contract TOKYO23 is ERC721A, Ownable, PaymentSplitter {
     event UnlocksApplied(uint256 _tokenId, uint256 _unlocks);
 
     /// @dev event for third party marketplace update tracking
@@ -28,15 +31,18 @@ contract TOKYO23 is ERC721A, Ownable {
     // collection of image offset coordinates and text for reward stamps
     string[5][23] public stamps;
 
-    uint256 public immutable cost = 0.08 ether;
+    uint256 public cost = 0.1 ether;
 
     // address of the issuer for signatures verified in applyUnlocks
-    address public immutable teamSigner = 0x489DeaF7D6aD9512a183eA01dD5331011d662a6c;
+    address public teamSigner = 0x489DeaF7D6aD9512a183eA01dD5331011d662a6c;
 
     // address where base svg image is stored
     address private baseSvgPointer;
 
-    constructor(bytes memory baseImage) ERC721A("TOKYO23", "TOKYO23") {
+    constructor(bytes memory baseImage, address[] memory _payees, uint256[] memory _shares)
+        ERC721A("TOKYO23", "TOKYO23")
+        PaymentSplitter(_payees, _shares)
+    {
         stamps[0] = ["296.5", "224.5", "8672cb", "645597", unicode"千代田"];
         stamps[1] = ["348.5", "237.5", "f7da00", "c4ad00", unicode"中央"];
         stamps[2] = ["266.5", "310.5", "6cb0d2", "51849e", unicode"港"];
@@ -70,9 +76,25 @@ contract TOKYO23 is ERC721A, Ownable {
         return 1;
     }
 
-    function setBaseImage(bytes calldata image) public onlyOwner {
-        address location = SSTORE2.write(image);
+    function setBaseImage(bytes calldata _image) public onlyOwner {
+        address location = SSTORE2.write(_image);
         baseSvgPointer = location;
+    }
+
+    function setCost(uint256 _cost) public onlyOwner {
+        if (_cost < 0.05 ether) {
+            revert CostTooLow();
+        }
+
+        cost = _cost;
+    }
+
+    function setSigner(address _newSigner) public onlyOwner {
+        if (_newSigner == address(0)) {
+            revert ZeroAddressSigner();
+        }
+
+        teamSigner = _newSigner;
     }
 
     function mintTo(address to) public payable {
@@ -95,10 +117,6 @@ contract TOKYO23 is ERC721A, Ownable {
 
         tokenOf[to] = _nextTokenId();
         _mint(to, 1);
-    }
-
-    function withdraw() public onlyOwner {
-        payable(msg.sender).transfer(address(this).balance);
     }
 
     function burnToken(uint256 tokenId) public {
