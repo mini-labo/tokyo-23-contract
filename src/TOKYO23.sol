@@ -13,7 +13,7 @@ error InsufficientFunds();
 error NotTokenHolder();
 error OnlyForYou();
 
-contract TokyoExplorer is ERC721A, Ownable {
+contract TOKYO23 is ERC721A, Ownable {
     event UnlocksApplied(uint256 _tokenId, uint256 _unlocks);
 
     /// @dev event for third party marketplace update tracking
@@ -36,7 +36,7 @@ contract TokyoExplorer is ERC721A, Ownable {
     // address where base svg image is stored
     address private baseSvgPointer;
 
-    constructor() ERC721A("TOKYO 23", "TOKYO23") {
+    constructor(bytes memory baseImage) ERC721A("TOKYO23", "TOKYO23") {
         stamps[0] = ["296.5", "224.5", "8672cb", "645597", unicode"千代田"];
         stamps[1] = ["348.5", "237.5", "f7da00", "c4ad00", unicode"中央"];
         stamps[2] = ["266.5", "310.5", "6cb0d2", "51849e", unicode"港"];
@@ -61,6 +61,7 @@ contract TokyoExplorer is ERC721A, Ownable {
         stamps[21] = ["468.5", "79.5", "6d9365", "475f42", unicode"葛飾"];
         stamps[22] = ["521.5", "229.5", "90e8cf", "70b4a1", unicode"江戸川"];
 
+        baseSvgPointer = SSTORE2.write(baseImage);
         _initializeOwner(msg.sender);
     }
 
@@ -178,12 +179,12 @@ contract TokyoExplorer is ERC721A, Ownable {
                 '<rect x="0.4375" y="0.4375" width="3.125" height="6.125" ry="1.70625" rx="2" fill="#ffffff" stroke="#',
                 stamp[2],
                 '" stroke-width="0.875" />',
-                '<rect x="0.05" y="0.05" width="3.9" height="6.9" rx="2" ry="2" fill="none" stroke-width="0.15" stroke="#',
+                '<rect x="0.125" y="0.125" width="3.785" height="6.785" rx="2" ry="2" fill="none" stroke-width="0.15" stroke="#',
                 stamp[2],
                 '"/>',
-                '<text x="1.75" y="3.5" font-family="Meiryo, sans-serif" alignment-baseline="middle" text-anchor="middle" fill="#',
+                '<text x="1.75" y="3.5" alignment-baseline="middle" font-weight="bold" text-align="center" text-anchor="middle" fill="#',
                 stamp[3],
-                '" style="font-size: 8.25%; font-weight: 600; letter-spacing: 0.1; writing-mode: vertical-rl;">',
+                '" style="font-size: 8.75%; letter-spacing: 0.025; writing-mode: vertical-rl; font-family: \'Noto\', \'Hiragino Sans ProN\', sans-serif;">',
                 stamp[4],
                 "</text></g>"
             );
