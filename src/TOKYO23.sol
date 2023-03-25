@@ -64,7 +64,7 @@ contract TOKYO23 is ERC721A, Ownable, PaymentSplitter {
         stamps[18] = ["170.5", "35.5", "539a8e", "37665e", unicode"板橋"];
         stamps[19] = ["47.5", "100.5", "dd7508", "ac5a08", unicode"練馬"];
         stamps[20] = ["379.5", "38.5", "c557d1", "93419e", unicode"足立"];
-        stamps[21] = ["468.5", "79.5", "6d9365", "475f42", unicode"葛飾"];
+        stamps[21] = ["468.5", "79.5", "52BB81", "3B8554", unicode"葛飾"];
         stamps[22] = ["521.5", "229.5", "90e8cf", "70b4a1", unicode"江戸川"];
 
         baseSvgPointer = SSTORE2.write(baseImage);
@@ -147,8 +147,8 @@ contract TOKYO23 is ERC721A, Ownable, PaymentSplitter {
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
-                            '{"name":"TOKYO 23",',
-                            '"description":"TOKYO 23",',
+                            '{"name":"TOKYO23",',
+                            '"description":"TOKYO23",',
                             '"attributes":[{"trait_type":"points","max_value":23,"value":',
                             _toString(unlockedStamps.length),
                             "}",
@@ -198,13 +198,14 @@ contract TOKYO23 is ERC721A, Ownable, PaymentSplitter {
                 stamp[2],
                 '" stroke-width="0.875" />',
                 '<rect x="0.125" y="0.125" width="3.785" height="6.785" rx="2" ry="2" fill="none" stroke-width="0.15" stroke="#',
-                stamp[2],
-                '"/>',
-                '<text x="1.75" y="3.5" alignment-baseline="middle" font-weight="bold" text-align="center" text-anchor="middle" fill="#',
                 stamp[3],
-                '" style="font-size: 8.75%; letter-spacing: 0.025; writing-mode: vertical-rl; font-family: \'Noto\', \'Hiragino Sans ProN\', sans-serif;">',
-                stamp[4],
-                "</text></g>"
+                '"/><path d="M 1.5 3.5 H 2.5" stroke="#',
+                stamp[3],
+                '" stroke-width="0.25" stroke-linecap="round"/><path d="M 2.5 3.5 L 2.125 3" stroke="#',
+                stamp[3],
+                '" stroke-width="0.25" stroke-linecap="round"/><path d="M 2.5 3.5 L 2.125 4" stroke="#',
+                stamp[3],
+                '" stroke-width="0.25" stroke-linecap="round"/></g>'
             );
 
             encodedStamps = abi.encodePacked(encodedStamps, stampSvg);
